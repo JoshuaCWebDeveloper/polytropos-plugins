@@ -1,0 +1,10 @@
+{
+  "name": "@polytropos/hello-plugin",
+  "private": true,
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rimraf dist && tsc -p tsconfig.json && ./postbuild.sh"
+  }
+}

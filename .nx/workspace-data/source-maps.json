@@ -1,0 +1,120 @@
+{
+  "plugins/hello-plugin": {
+    "root": [
+      "plugins/hello-plugin/project.json",
+      "nx/core/project-json"
+    ],
+    "name": [
+      "plugins/hello-plugin/project.json",
+      "nx/core/project-json"
+    ],
+    "tags": [
+      "plugins/hello-plugin/package.json",
+      "nx/core/package-json"
+    ],
+    "tags.npm:private": [
+      "plugins/hello-plugin/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups": [
+      "plugins/hello-plugin/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js": [
+      "plugins/hello-plugin/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.packageName": [
+      "plugins/hello-plugin/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.packageVersion": [
+      "plugins/hello-plugin/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.packageMain": [
+      "plugins/hello-plugin/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.isInPackageManagerWorkspaces": [
+      "plugins/hello-plugin/package.json",
+      "nx/core/package-json"
+    ],
+    "targets": [
+      "plugins/hello-plugin/package.json",
+      "nx/core/package-json"
+    ],
+    "$schema": [
+      "plugins/hello-plugin/project.json",
+      "nx/core/project-json"
+    ],
+    "sourceRoot": [
+      "plugins/hello-plugin/project.json",
+      "nx/core/project-json"
+    ],
+    "projectType": [
+      "plugins/hello-plugin/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build": [
+      "plugins/hello-plugin/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.executor": [
+      "plugins/hello-plugin/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.options": [
+      "plugins/hello-plugin/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.options.cwd": [
+      "plugins/hello-plugin/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.options.command": [
+      "plugins/hello-plugin/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.deploy-dev": [
+      "plugins/hello-plugin/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.deploy-dev.executor": [
+      "plugins/hello-plugin/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.deploy-dev.dependsOn": [
+      "plugins/hello-plugin/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.deploy-dev.options": [
+      "plugins/hello-plugin/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.deploy-dev.options.command": [
+      "plugins/hello-plugin/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.deploy-prod": [
+      "plugins/hello-plugin/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.deploy-prod.executor": [
+      "plugins/hello-plugin/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.deploy-prod.dependsOn": [
+      "plugins/hello-plugin/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.deploy-prod.options": [
+      "plugins/hello-plugin/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.deploy-prod.options.command": [
+      "plugins/hello-plugin/project.json",
+      "nx/core/project-json"
+    ]
+  }
+}
