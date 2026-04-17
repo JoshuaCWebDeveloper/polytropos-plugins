@@ -1,0 +1,16 @@
+# deps
+node_modules/
+
+# build outputs
+/dist/
+plugins/*/dist/
+
+# Nx local state
+.nx/cache/
+.nx/workspace-data/
+
+# logs
+*.log
+
+# OS
+.DS_Store

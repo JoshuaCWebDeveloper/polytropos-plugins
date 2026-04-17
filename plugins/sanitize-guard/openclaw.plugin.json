@@ -1,0 +1,35 @@
+{
+  "id": "sanitize-guard",
+  "name": "Sanitize Guard",
+  "description": "Workaround hook that nudges the agent away from trigger-phrases that cause a false rewrite in older releases.",
+  "kind": "extension",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true
+      },
+      "scope": {
+        "type": "string",
+        "enum": [
+          "main-only",
+          "all"
+        ],
+        "default": "main-only"
+      }
+    }
+  },
+  "uiHints": {
+    "enabled": {
+      "label": "Enabled"
+    },
+    "scope": {
+      "label": "Scope",
+      "placeholder": "main-only"
+    }
+  },
+  "entry": "dist/index.js",
+  "version": "0.1.0"
+}

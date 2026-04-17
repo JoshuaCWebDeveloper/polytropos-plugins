@@ -1,0 +1,29 @@
+{
+  "name": "sanitize-guard",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "plugins/sanitize-guard/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "plugins/sanitize-guard",
+        "command": "pnpm run build"
+      }
+    },
+    "deploy-dev": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "command": "node scripts/deploy-plugin.mjs symlink dist/plugins/sanitize-guard sanitize-guard"
+      }
+    },
+    "deploy-prod": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "command": "node scripts/deploy-plugin.mjs copy dist/plugins/sanitize-guard sanitize-guard"
+      }
+    }
+  }
+}
