@@ -5,7 +5,7 @@ const plugin = {
   id: "sanitize-guard",
   name: "Sanitize Guard",
   description:
-    "Workaround hook that nudges the agent away from trigger-phrases that cause a false rewrite in older releases.",
+    "Workaround hook that nudges the agent away from trigger-phrases that cause a false rewrite in older releases (migrated to polytropos-plugins).",
   configSchema: {
     type: "object",
     additionalProperties: false,

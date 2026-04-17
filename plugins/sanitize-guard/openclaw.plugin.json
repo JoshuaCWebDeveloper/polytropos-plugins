@@ -1,7 +1,7 @@
 {
   "id": "sanitize-guard",
   "name": "Sanitize Guard",
-  "description": "Workaround hook that nudges the agent away from trigger-phrases that cause a false rewrite in older releases.",
+  "description": "Workaround hook that nudges the agent away from trigger-phrases that cause a false rewrite in older releases (migrated to polytropos-plugins).",
   "kind": "extension",
   "configSchema": {
     "type": "object",
