@@ -5,6 +5,6 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "rimraf dist && tsc -p tsconfig.json && ./postbuild.sh"
+    "build": "rimraf dist && tsc -p tsconfig.json && node ../../scripts/pack-plugin.mjs sanitize-guard"
   }
 }
