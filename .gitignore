@@ -14,3 +14,7 @@ plugins/*/dist/
 
 # OS
 .DS_Store
+
+# Nx local state (entire dir)
+.nx/
+
