@@ -20,6 +20,10 @@ const requiredEntries = [
   ['openclaw.plugin.json', 'openclaw.plugin.json'],
 ];
 
+const additionalCopies = [
+  ['openclaw.plugin.json', path.join('dist', 'openclaw.plugin.json')],
+];
+
 for (const [sourceName] of requiredEntries) {
   const sourcePath = path.join(pluginRoot, sourceName);
 
@@ -40,6 +44,12 @@ for (const [sourceName, targetName] of requiredEntries) {
     path.join(outputRoot, targetName),
     { recursive: true },
   );
+}
+
+for (const [sourceName, targetName] of additionalCopies) {
+  const targetPath = path.join(outputRoot, targetName);
+  await fs.mkdir(path.dirname(targetPath), { recursive: true });
+  await fs.cp(path.join(pluginRoot, sourceName), targetPath);
 }
 
 const hooksPath = path.join(pluginRoot, 'hooks');
