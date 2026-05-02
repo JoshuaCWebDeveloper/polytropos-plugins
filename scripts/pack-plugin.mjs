@@ -23,6 +23,18 @@ const additionalCopies = [
   ['openclaw.plugin.json', path.join('dist', 'openclaw.plugin.json')],
 ];
 
+function rewritePackagedManifest(rawManifest) {
+  const manifest = JSON.parse(rawManifest);
+
+  // The packaged manifest is written into dist/, so entries that point at
+  // dist/* in source need to become relative to that directory.
+  if (typeof manifest.entry === 'string' && manifest.entry.startsWith('dist/')) {
+    manifest.entry = manifest.entry.slice('dist/'.length);
+  }
+
+  return `${JSON.stringify(manifest, null, 2)}\n`;
+}
+
 for (const [sourceName] of requiredEntries) {
   const sourcePath = path.join(pluginRoot, sourceName);
 
@@ -48,7 +60,15 @@ for (const [sourceName, targetName] of requiredEntries) {
 for (const [sourceName, targetName] of additionalCopies) {
   const targetPath = path.join(outputRoot, targetName);
   await fs.mkdir(path.dirname(targetPath), { recursive: true });
-  await fs.cp(path.join(pluginRoot, sourceName), targetPath);
+  const sourcePath = path.join(pluginRoot, sourceName);
+
+  if (sourceName === 'openclaw.plugin.json') {
+    const manifest = await fs.readFile(sourcePath, 'utf8');
+    await fs.writeFile(targetPath, rewritePackagedManifest(manifest));
+    continue;
+  }
+
+  await fs.cp(sourcePath, targetPath);
 }
 
 const hooksPath = path.join(pluginRoot, 'hooks');
