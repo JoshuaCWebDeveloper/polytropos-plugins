@@ -17,7 +17,6 @@ const outputRoot = path.join(repoRoot, 'dist', 'plugins', pluginName);
 const requiredEntries = [
   ['dist', 'dist'],
   ['package.json', 'package.json'],
-  ['openclaw.plugin.json', 'openclaw.plugin.json'],
 ];
 
 const additionalCopies = [
