@@ -34,9 +34,9 @@ async function resolvePluginRoot(candidatePath, pluginName) {
     }
 
     const manifestDir = path.dirname(manifestPath);
-    const pluginRoot = path.basename(manifestDir) === 'dist'
-      ? path.dirname(manifestDir)
-      : manifestDir;
+    // Canonical rule: plugin root is the directory containing openclaw.plugin.json.
+    // This is the directory OpenClaw should be pointed at (symlink/copy source).
+    const pluginRoot = manifestDir;
     const rawManifest = await fs.readFile(manifestPath, 'utf8');
 
     let manifest;
