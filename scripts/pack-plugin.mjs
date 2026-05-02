@@ -22,7 +22,8 @@ const requiredEntries = [
 
 function rewritePackagedManifest(rawManifest) {
   const manifest = JSON.parse(rawManifest);
-  manifest.entry = 'index.js';
+  // Preserve the original entry path since it's already correct relative to dist/
+  // manifest.entry = 'index.js';
 
   return `${JSON.stringify(manifest, null, 2)}\n`;
 }
