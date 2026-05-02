@@ -17,12 +17,12 @@ const outputRoot = path.join(repoRoot, 'dist', 'plugins', pluginName);
 const requiredEntries = [
   ['dist', 'dist'],
   ['package.json', 'package.json'],
-  ['openclaw.plugin.json', 'openclaw.plugin.json'],
+  ['openclaw.plugin.json', path.join('dist', 'openclaw.plugin.json')],
 ];
 
 function rewritePackagedManifest(rawManifest) {
   const manifest = JSON.parse(rawManifest);
-  manifest.entry = 'dist/index.js';
+  manifest.entry = 'index.js';
 
   return `${JSON.stringify(manifest, null, 2)}\n`;
 }
@@ -43,15 +43,16 @@ await fs.mkdir(outputRoot, { recursive: true });
 
 for (const [sourceName, targetName] of requiredEntries) {
   const sourcePath = path.join(pluginRoot, sourceName);
+  const targetPath = path.join(outputRoot, targetName);
   if (sourceName === 'openclaw.plugin.json') {
     const manifest = await fs.readFile(sourcePath, 'utf8');
-    await fs.writeFile(path.join(outputRoot, targetName), rewritePackagedManifest(manifest));
+    await fs.writeFile(targetPath, rewritePackagedManifest(manifest));
     continue;
   }
 
   await fs.cp(
     sourcePath,
-    path.join(outputRoot, targetName),
+    targetPath,
     { recursive: true },
   );
 }
