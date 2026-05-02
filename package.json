@@ -7,7 +7,8 @@
     "nx": "nx",
     "build": "nx run-many -t build",
     "deploy:dev": "nx run-many -t deploy-dev",
-    "deploy:prod": "nx run-many -t deploy-prod"
+    "deploy:prod": "nx run-many -t deploy-prod",
+    "verify:plugin": "node scripts/verify-plugin.mjs"
   },
   "devDependencies": {
     "@nx/js": "^22.6.3",

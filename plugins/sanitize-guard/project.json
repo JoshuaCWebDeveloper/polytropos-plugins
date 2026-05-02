@@ -15,14 +15,14 @@
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
       "options": {
-        "command": "node scripts/deploy-plugin.mjs symlink dist/plugins/sanitize-guard/dist sanitize-guard"
+        "command": "node scripts/deploy-plugin.mjs symlink dist/plugins/sanitize-guard sanitize-guard"
       }
     },
     "deploy-prod": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
       "options": {
-        "command": "node scripts/deploy-plugin.mjs copy dist/plugins/sanitize-guard/dist sanitize-guard"
+        "command": "node scripts/deploy-plugin.mjs copy dist/plugins/sanitize-guard sanitize-guard"
       }
     }
   }
