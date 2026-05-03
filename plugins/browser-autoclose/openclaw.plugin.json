@@ -2,7 +2,7 @@
   "id": "browser-autoclose",
   "name": "Browser Auto-Close",
   "version": "0.1.0",
-  "description": "Auto-stops the OpenClaw-managed browser after an idle timeout (no cron).",
+  "description": "DEPRECATED: auto-stops the OpenClaw-managed browser after an idle timeout (kept for reference; do not enable)",
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
