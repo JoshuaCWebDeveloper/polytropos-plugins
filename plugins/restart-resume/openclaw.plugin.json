@@ -1,0 +1,41 @@
+{
+  "id": "restart-resume",
+  "name": "Restart Resume",
+  "version": "0.1.0",
+  "description": "On gateway start, if a copied restart sentinel exists, post a 'Gateway successfully restarted' message via send-to-channel.sh to trigger a fresh agent turn.",
+  "entry": "dist/index.js",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": { "type": "boolean", "default": true },
+      "guildId": {
+        "type": "string",
+        "default": "1465502729383186474",
+        "description": "Discord guild id used by send-to-channel.sh"
+      },
+      "copiedSentinelPath": {
+        "type": "string",
+        "default": "~/.openclaw/restart-sentinel.copied.json",
+        "description": "Path to the copied restart sentinel created by ExecStartPre"
+      },
+      "sendScriptPath": {
+        "type": "string",
+        "default": "/home/ec2-user/.openclaw/workspace-discord-general/routines/send-to-channel/send-to-channel.sh",
+        "description": "Script used to send a message into the correct session for a channel"
+      },
+      "healthTimeoutMs": {
+        "type": "number",
+        "default": 60000,
+        "minimum": 1000,
+        "description": "How long to wait for `openclaw health --json` to succeed before giving up"
+      },
+      "healthPollIntervalMs": {
+        "type": "number",
+        "default": 500,
+        "minimum": 100,
+        "description": "Polling interval while waiting for health"
+      }
+    }
+  }
+}

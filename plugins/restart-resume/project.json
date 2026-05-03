@@ -1,0 +1,29 @@
+{
+  "name": "restart-resume",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "plugins/restart-resume",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "plugins/restart-resume",
+        "command": "pnpm run build"
+      }
+    },
+    "deploy-dev": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "command": "node scripts/deploy-plugin.mjs symlink dist/plugins/restart-resume restart-resume"
+      }
+    },
+    "deploy-prod": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "command": "node scripts/deploy-plugin.mjs copy dist/plugins/restart-resume restart-resume"
+      }
+    }
+  }
+}
