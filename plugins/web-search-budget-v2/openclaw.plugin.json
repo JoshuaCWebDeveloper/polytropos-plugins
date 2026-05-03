@@ -1,0 +1,48 @@
+{
+  "id": "web-search-budget-v2",
+  "name": "Web Search Budget",
+  "description": "Adds a budgeted web search tool (daily quota) to prevent runaway web_search usage.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "dailyLimit": {
+        "type": "integer",
+        "minimum": 1,
+        "default": 100
+      },
+      "timezone": {
+        "type": "string",
+        "default": "UTC",
+        "description": "Reset boundary timezone (IANA). Currently only UTC is supported by this plugin."
+      },
+      "keyScope": {
+        "type": "string",
+        "enum": [
+          "global",
+          "session"
+        ],
+        "default": "global",
+        "description": "Count searches globally or per-agent sessionKey."
+      },
+      "toolName": {
+        "type": "string",
+        "default": "web_search_limited",
+        "description": "Tool name exposed to the LLM (must not clash with core tools)."
+      }
+    }
+  },
+  "uiHints": {
+    "dailyLimit": {
+      "label": "Daily Limit",
+      "placeholder": "100"
+    },
+    "keyScope": {
+      "label": "Count Scope"
+    },
+    "toolName": {
+      "label": "Tool Name"
+    }
+  },
+  "entry": "dist/index.js"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "context-overflow-detection-fix",
+  "name": "Context Overflow Detection Fix",
+  "description": "Extends isContextOverflowError() detection to match provider codes like context_length_exceeded.",
+  "version": "0.0.3",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true
+      },
+      "dryRun": {
+        "type": "boolean",
+        "default": false
+      }
+    }
+  },
+  "entry": "dist/index.js"
+}

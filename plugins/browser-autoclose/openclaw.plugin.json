@@ -1,0 +1,200 @@
+{
+  "id": "browser-autoclose",
+  "name": "Browser Auto-Close",
+  "version": "0.1.0",
+  "description": "Auto-stops the OpenClaw-managed browser after an idle timeout (no cron).",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true
+      },
+      "idleMs": {
+        "type": "number",
+        "minimum": 1000,
+        "default": 600000
+      },
+      "stopTimeoutMs": {
+        "type": "number",
+        "minimum": 1000,
+        "default": 30000,
+        "description": "Timeout (ms) to allow for each `openclaw browser stop` call."
+      },
+      "stopMethod": {
+        "type": "string",
+        "enum": [
+          "cli",
+          "http"
+        ],
+        "default": "cli",
+        "description": "How to stop the browser when idle. cli = use `openclaw browser stop` (recommended). http = POST /stop on browser controlUrl."
+      },
+      "profile": {
+        "type": "string",
+        "minLength": 1,
+        "default": "openclaw",
+        "description": "Deprecated (fallback only). In cli mode we stop all running profiles dynamically."
+      },
+      "controlUrl": {
+        "type": "string",
+        "minLength": 1,
+        "default": "http://127.0.0.1:18791",
+        "description": "Deprecated unless stopMethod=http."
+      },
+      "maxTabs": {
+        "type": "number",
+        "minimum": 1,
+        "default": 20,
+        "description": "Hard cap: if a profile exceeds this many tabs, browser-autoclose will force-stop + reset that profile (prevents runaway memory)."
+      },
+      "maxParentsPerProfile": {
+        "type": "number",
+        "minimum": 1,
+        "default": 1,
+        "description": "Safety cap: maximum number of top-level Chrome parents allowed per profile user-data-dir. If exceeded, the plugin will force-stop that profile."
+      },
+      "guardIntervalMs": {
+        "type": "number",
+        "minimum": 5000,
+        "default": 30000,
+        "description": "How often to run the safety guard checks (parents/rogue CDP; maxTabs checked separately)."
+      },
+      "enforceNoManualCdp18800": {
+        "type": "boolean",
+        "default": true,
+        "description": "If true, kill any Chrome parent using --remote-debugging-port=18800 that is NOT using the OpenClaw openclaw profile user-data-dir. This prevents the manual Playwright-on-18800 workaround from wedging OpenClaw."
+      },
+      "timeoutCooldownMs": {
+        "type": "number",
+        "minimum": 10000,
+        "default": 120000,
+        "description": "If a browser tool call fails due to browser control service timeout, block further browser calls for this cooldown window (circuit breaker) and attempt soft recovery without restarting the gateway."
+      },
+      "restartChromeProfileOnTimeout": {
+        "type": "boolean",
+        "default": true,
+        "description": "On browser control timeout, stop the internal 'chrome' profile (relay/control) as part of soft recovery."
+      },
+      "restartOpenclawProfileOnTimeout": {
+        "type": "boolean",
+        "default": true,
+        "description": "On browser control timeout, stop the 'openclaw' profile as part of soft recovery."
+      },
+      "browserToolTimeoutMs": {
+        "type": "number",
+        "minimum": 5000,
+        "default": 60000,
+        "description": "Minimum timeout to apply to browser tool calls (via before_tool_call). Helps avoid spurious 20s control-service timeouts under load."
+      },
+      "resetProfileOnForceStop": {
+        "type": "boolean",
+        "default": true,
+        "description": "If true, whenever the guard force-stops a profile (e.g. maxTabs/maxParents exceeded), also run `openclaw browser reset-profile` so Chrome won't restore a huge tab/session set next start."
+      },
+      "resetProfileOnTimeout": {
+        "type": "boolean",
+        "default": true,
+        "description": "If true, after a browser control service timeout, soft-recovery will reset the openclaw profile so we don't restore runaway tabs after recovery."
+      },
+      "verbose": {
+        "type": "boolean",
+        "default": false
+      },
+      "profilesCheckIntervalMs": {
+        "type": "number",
+        "minimum": 10000,
+        "default": 300000,
+        "description": "How often to run `openclaw browser profiles --json` to enforce maxTabs (kept infrequent)."
+      },
+      "memAvailableThresholdMb": {
+        "type": "number",
+        "minimum": 50,
+        "default": 600,
+        "description": "If MemAvailable drops below this threshold, run an immediate profiles check and enforce maxTabs."
+      }
+    },
+    "required": [
+      "idleMs",
+      "stopMethod"
+    ]
+  },
+  "uiHints": {
+    "enabled": {
+      "label": "Enabled"
+    },
+    "idleMs": {
+      "label": "Idle timeout (ms)",
+      "placeholder": "600000"
+    },
+    "stopTimeoutMs": {
+      "label": "Stop timeout (ms)",
+      "placeholder": "30000"
+    },
+    "stopMethod": {
+      "label": "Stop method",
+      "placeholder": "cli"
+    },
+    "profile": {
+      "label": "Browser profile (deprecated/fallback)",
+      "placeholder": "openclaw"
+    },
+    "controlUrl": {
+      "label": "Browser control URL (deprecated)",
+      "placeholder": "http://127.0.0.1:18791"
+    },
+    "maxTabs": {
+      "label": "Max tabs (safety cap)",
+      "placeholder": "20"
+    },
+    "maxParentsPerProfile": {
+      "label": "Max parent Chrome processes per profile",
+      "placeholder": "1"
+    },
+    "guardIntervalMs": {
+      "label": "Guard interval (ms)",
+      "placeholder": "30000"
+    },
+    "enforceNoManualCdp18800": {
+      "label": "Kill rogue CDP on 18800",
+      "placeholder": "true"
+    },
+    "timeoutCooldownMs": {
+      "label": "Timeout cooldown (ms)",
+      "placeholder": "120000"
+    },
+    "restartChromeProfileOnTimeout": {
+      "label": "Restart chrome profile on timeout",
+      "placeholder": "true"
+    },
+    "restartOpenclawProfileOnTimeout": {
+      "label": "Restart openclaw profile on timeout",
+      "placeholder": "true"
+    },
+    "browserToolTimeoutMs": {
+      "label": "Min browser tool timeout (ms)",
+      "placeholder": "60000"
+    },
+    "resetProfileOnForceStop": {
+      "label": "Reset profile on force-stop",
+      "placeholder": "true"
+    },
+    "resetProfileOnTimeout": {
+      "label": "Reset profile on timeout recovery",
+      "placeholder": "true"
+    },
+    "verbose": {
+      "label": "Verbose logging"
+    },
+    "profilesCheckIntervalMs": {
+      "label": "Profiles check interval (ms)",
+      "placeholder": "300000"
+    },
+    "memAvailableThresholdMb": {
+      "label": "MemAvailable threshold (MB)",
+      "placeholder": "600"
+    }
+  },
+  "entry": "dist/index.js"
+}
