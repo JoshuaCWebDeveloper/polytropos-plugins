@@ -1,0 +1,34 @@
+{
+  "id": "discord-reminder-crond",
+  "name": "Discord Reminder (crond)",
+  "version": "0.1.0",
+  "description": "Slackbot-like reminders from a dedicated Discord channel, scheduled via native cron (crond).",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true
+      },
+      "channelId": {
+        "type": "string",
+        "minLength": 17,
+        "description": "Discord channel snowflake ID to treat as the reminder inbox (messages in this channel should be denied from agent handling in main config)."
+      }
+    },
+    "required": [
+      "channelId"
+    ]
+  },
+  "uiHints": {
+    "enabled": {
+      "label": "Enabled"
+    },
+    "channelId": {
+      "label": "Reminder Channel ID",
+      "placeholder": "1475939937508528272"
+    }
+  },
+  "entry": "dist/index.js"
+}

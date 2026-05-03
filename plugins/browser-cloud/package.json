@@ -1,0 +1,18 @@
+{
+  "name": "@polytropos/browser-cloud",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@sinclair/typebox": "^0.34.40",
+    "playwright-core": "^1.55.0",
+    "openclaw": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  },
+  "scripts": {
+    "build": "node ./build-artifact.mjs && node ../../scripts/pack-plugin.mjs browser-cloud"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts"
+}

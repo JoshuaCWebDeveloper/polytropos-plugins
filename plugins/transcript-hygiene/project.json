@@ -1,0 +1,29 @@
+{
+  "name": "transcript-hygiene",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "plugins/transcript-hygiene",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "plugins/transcript-hygiene",
+        "command": "pnpm run build"
+      }
+    },
+    "deploy-dev": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "command": "node scripts/deploy-plugin.mjs symlink dist/plugins/transcript-hygiene transcript-hygiene"
+      }
+    },
+    "deploy-prod": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "command": "node scripts/deploy-plugin.mjs copy dist/plugins/transcript-hygiene transcript-hygiene"
+      }
+    }
+  }
+}

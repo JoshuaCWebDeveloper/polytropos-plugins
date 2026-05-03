@@ -1,0 +1,34 @@
+import { writeViaSiblingTempPath } from "./output-atomic.ts";
+import { DEFAULT_TRACE_DIR } from "./paths.ts";
+import { ensureContextState, getPageForTargetId } from "./pw-session.ts";
+export async function traceStartViaPlaywright(opts) {
+    const page = await getPageForTargetId(opts);
+    const context = page.context();
+    const ctxState = ensureContextState(context);
+    if (ctxState.traceActive) {
+        throw new Error("Trace already running. Stop the current trace before starting a new one.");
+    }
+    await context.tracing.start({
+        screenshots: opts.screenshots ?? true,
+        snapshots: opts.snapshots ?? true,
+        sources: opts.sources ?? false,
+    });
+    ctxState.traceActive = true;
+}
+export async function traceStopViaPlaywright(opts) {
+    const page = await getPageForTargetId(opts);
+    const context = page.context();
+    const ctxState = ensureContextState(context);
+    if (!ctxState.traceActive) {
+        throw new Error("No active trace. Start a trace before stopping it.");
+    }
+    await writeViaSiblingTempPath({
+        rootDir: DEFAULT_TRACE_DIR,
+        targetPath: opts.path,
+        writeTemp: async (tempPath) => {
+            await context.tracing.stop({ path: tempPath });
+        },
+    });
+    ctxState.traceActive = false;
+}
+//# sourceMappingURL=pw-tools-core.trace.js.map

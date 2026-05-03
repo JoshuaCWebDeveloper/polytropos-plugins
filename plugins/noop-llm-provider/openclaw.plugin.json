@@ -1,0 +1,25 @@
+{
+  "id": "noop-llm-provider",
+  "name": "No-op LLM Provider",
+  "version": "0.1.0",
+  "description": "Local HTTP server that implements a minimal OpenAI-compatible chat completions endpoint and always returns NO_REPLY.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true
+      },
+      "host": {
+        "type": "string",
+        "default": "127.0.0.1"
+      },
+      "port": {
+        "type": "integer",
+        "default": 19999
+      }
+    }
+  },
+  "entry": "dist/index.js"
+}

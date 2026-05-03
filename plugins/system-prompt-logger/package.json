@@ -1,0 +1,13 @@
+{
+  "name": "@polytropos/system-prompt-logger",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "build": "node ../../scripts/build-js-plugin.mjs system-prompt-logger && node ../../scripts/pack-plugin.mjs system-prompt-logger"
+  },
+  "dependencies": {
+    "openclaw": "*"
+  }
+}

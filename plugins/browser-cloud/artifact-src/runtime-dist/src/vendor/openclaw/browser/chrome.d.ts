@@ -1,0 +1,20 @@
+import { type ChildProcessWithoutNullStreams } from "node:child_process";
+import { type BrowserExecutable } from "./chrome.executables.ts";
+import type { ResolvedBrowserConfig, ResolvedBrowserProfile } from "./config.ts";
+export type { BrowserExecutable } from "./chrome.executables.ts";
+export { findChromeExecutableLinux, findChromeExecutableMac, findChromeExecutableWindows, resolveBrowserExecutableForPlatform, } from "./chrome.executables.ts";
+export { decorateOpenClawProfile, ensureProfileCleanExit, isProfileDecorated, } from "./chrome.profile-decoration.ts";
+export type RunningChrome = {
+    pid: number;
+    exe: BrowserExecutable;
+    userDataDir: string;
+    cdpPort: number;
+    startedAt: number;
+    proc: ChildProcessWithoutNullStreams;
+};
+export declare function resolveOpenClawUserDataDir(profileName?: string): string;
+export declare function isChromeReachable(cdpUrl: string, timeoutMs?: number): Promise<boolean>;
+export declare function getChromeWebSocketUrl(cdpUrl: string, timeoutMs?: number): Promise<string | null>;
+export declare function isChromeCdpReady(cdpUrl: string, timeoutMs?: number, handshakeTimeoutMs?: number): Promise<boolean>;
+export declare function launchOpenClawChrome(resolved: ResolvedBrowserConfig, profile: ResolvedBrowserProfile): Promise<RunningChrome>;
+export declare function stopOpenClawChrome(running: RunningChrome, timeoutMs?: number): Promise<void>;

@@ -1,0 +1,19 @@
+{
+  "name": "@polytropos/noop-llm-provider",
+  "version": "0.0.0",
+  "private": true,
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  },
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rimraf dist && tsc -p tsconfig.json && node ../../scripts/pack-plugin.mjs noop-llm-provider"
+  },
+  "dependencies": {
+    "openclaw": "*"
+  }
+}

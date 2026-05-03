@@ -1,0 +1,12 @@
+{
+  "id": "transcript-hygiene",
+  "name": "Transcript Hygiene (Cross-Provider Fix)",
+  "description": "Strips trailing content after toolCall blocks in assistant messages to prevent cross-provider rejections (e.g. Grok to Claude).",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  },
+  "entry": "dist/index.js"
+}

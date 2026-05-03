@@ -1,0 +1,16 @@
+import path from "node:path";
+
+export function isNotFoundPathError(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "code" in err &&
+    (err as { code?: unknown }).code === "ENOENT"
+  );
+}
+
+export function isPathInside(root: string, candidate: string): boolean {
+  const rel = path.relative(root, candidate);
+  return Boolean(rel) && !rel.startsWith("..") && !path.isAbsolute(rel);
+}
+

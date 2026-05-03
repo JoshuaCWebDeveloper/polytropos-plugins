@@ -1,0 +1,17 @@
+{
+  "name": "@polytropos/discord-reminder-crond",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "openclaw": "*"
+  },
+  "openclaw": {
+    "id": "discord-reminder-crond"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rimraf dist && tsc -p tsconfig.json && node ../../scripts/pack-plugin.mjs discord-reminder-crond"
+  }
+}

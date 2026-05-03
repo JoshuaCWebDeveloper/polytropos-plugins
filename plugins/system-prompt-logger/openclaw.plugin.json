@@ -1,0 +1,42 @@
+{
+  "id": "system-prompt-logger",
+  "name": "System Prompt Logger",
+  "description": "Logs the final assembled system prompt for each LLM request.",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true
+      },
+      "filePath": {
+        "type": "string",
+        "description": "Path to append JSONL records containing the resolved system prompt. Default: $OPENCLAW_STATE_DIR/logs/request-system-prompts.log"
+      },
+      "includePrompt": {
+        "type": "boolean",
+        "default": false,
+        "description": "Also include the user prompt string (can be large/sensitive)."
+      },
+      "rotation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "maxBytes": {
+            "type": "number",
+            "default": 10485760,
+            "description": "Rotate when log file exceeds this size (bytes). Default: 10MB."
+          },
+          "maxFiles": {
+            "type": "number",
+            "default": 10,
+            "description": "Max rotated files to keep. Oldest are deleted."
+          }
+        }
+      }
+    }
+  },
+  "entry": "dist/index.js"
+}

@@ -17,7 +17,6 @@ const outputRoot = path.join(repoRoot, 'dist', 'plugins', pluginName);
 const requiredEntries = [
   ['dist', 'dist'],
   ['package.json', 'package.json'],
-  ['openclaw.plugin.json', path.join('dist', 'openclaw.plugin.json')],
 ];
 
 function rewritePackagedManifest(rawManifest) {
@@ -46,11 +45,6 @@ await fs.mkdir(outputRoot, { recursive: true });
 for (const [sourceName, targetName] of requiredEntries) {
   const sourcePath = path.join(pluginRoot, sourceName);
   const targetPath = path.join(outputRoot, targetName);
-  if (sourceName === 'openclaw.plugin.json') {
-    const manifest = await fs.readFile(sourcePath, 'utf8');
-    await fs.writeFile(targetPath, rewritePackagedManifest(manifest));
-    continue;
-  }
 
   await fs.cp(
     sourcePath,
@@ -58,6 +52,13 @@ for (const [sourceName, targetName] of requiredEntries) {
     { recursive: true },
   );
 }
+
+const sourceManifestPath = path.join(pluginRoot, 'openclaw.plugin.json');
+const packagedManifest = rewritePackagedManifest(await fs.readFile(sourceManifestPath, 'utf8'));
+
+await fs.writeFile(path.join(outputRoot, 'openclaw.plugin.json'), packagedManifest);
+await fs.mkdir(path.join(outputRoot, 'dist'), { recursive: true });
+await fs.writeFile(path.join(outputRoot, 'dist', 'openclaw.plugin.json'), packagedManifest);
 
 const hooksPath = path.join(pluginRoot, 'hooks');
 

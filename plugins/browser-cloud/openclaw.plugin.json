@@ -1,0 +1,68 @@
+{
+  "id": "browser-cloud",
+  "name": "browser_cloud (Browser Use Cloud)",
+  "description": "Full-parity browser tool backed by Browser Use Cloud browser sessions (CDP).",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "profileId": {
+        "type": "string",
+        "description": "Browser Use Cloud profileId (UUID) to use for session persistence."
+      },
+      "timeoutMin": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 240,
+        "default": 15
+      },
+      "idleStopMs": {
+        "type": "integer",
+        "minimum": 1000,
+        "default": 120000
+      },
+      "apiKey": {
+        "description": "Browser Use API key secret input. Prefer a SecretRef (exec provider) rather than plaintext.",
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "source": {
+                "type": "string",
+                "enum": [
+                  "exec"
+                ]
+              },
+              "provider": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "provider",
+              "id"
+            ]
+          }
+        ]
+      }
+    },
+    "required": [
+      "profileId",
+      "apiKey"
+    ]
+  },
+  "uiHints": {
+    "sensitive": [
+      "apiKey"
+    ]
+  },
+  "entry": "dist/index.js"
+}
