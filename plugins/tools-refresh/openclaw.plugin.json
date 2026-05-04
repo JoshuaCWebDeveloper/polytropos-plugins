@@ -1,0 +1,29 @@
+{
+  "id": "tools-refresh",
+  "name": "Tools Refresh",
+  "description": "Adds a /tools refresh and /tools report command to force tool-manifest reinjection for an existing session without discarding the conversation.",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true
+      },
+      "allowFromDiscord": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Discord sender IDs allowed to run /tools refresh"
+      },
+      "agentId": {
+        "type": "string",
+        "default": "discord-general",
+        "description": "Agent id whose session store will be patched (default: discord-general)"
+      }
+    }
+  },
+  "entry": "dist/index.js"
+}

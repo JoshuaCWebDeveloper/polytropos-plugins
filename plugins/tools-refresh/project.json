@@ -1,0 +1,29 @@
+{
+  "name": "tools-refresh",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "plugins/tools-refresh",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "plugins/tools-refresh",
+        "command": "pnpm run build"
+      }
+    },
+    "deploy-dev": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "command": "node scripts/deploy-plugin.mjs symlink dist/plugins/tools-refresh tools-refresh"
+      }
+    },
+    "deploy-prod": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "command": "node scripts/deploy-plugin.mjs copy dist/plugins/tools-refresh tools-refresh"
+      }
+    }
+  }
+}
