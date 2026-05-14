@@ -123,6 +123,24 @@ export class BrowserUseCloudSessionManager {
         // Don't keep the Node process alive just for the idle timer.
         this.idleTimer.unref?.();
     }
+    invalidate(reason) {
+        console.error("[browser-cloud] invalidate()", {
+            reason: reason ?? "unknown",
+            sessionId: this.session?.id ?? null,
+            cdpUrl: this.session?.cdpUrl ?? null,
+            at: new Date().toISOString(),
+        });
+        this.session = null;
+        this.lastResolvedWsUrl = null;
+        this.startedAtMs = null;
+        this.lastUsedAtMs = null;
+        this.creating = null;
+        if (this.idleTimer) {
+            clearTimeout(this.idleTimer);
+            this.idleTimer = null;
+        }
+        void closePlaywrightBrowserConnection().catch(() => { });
+    }
     async ensure() {
         if (this.session?.id && this.session?.cdpUrl) {
             // eslint-disable-next-line no-console

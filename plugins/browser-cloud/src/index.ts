@@ -4,7 +4,7 @@ import { BrowserCloudController } from "./browser-cloud-controller.ts";
 
 // Vendored schema: keep it byte-for-byte compatible with core BrowserToolSchema.
 import { BrowserToolSchema } from "./vendor/openclaw/agents-tools-browser-tool.schema.ts";
-import { isBrowserCloudFatalError } from "./errors.ts";
+import { BrowserCloudFatalError, isBrowserCloudFatalError } from "./errors.ts";
 
 type PluginCfg = {
   profileId: string;
@@ -46,9 +46,9 @@ function isBuSessionExpiredFromStatus(statusJson: any): boolean {
   return false;
 }
 
-function toBrowserSessionExpiredError(err: unknown): Error {
+function toBrowserSessionExpiredError(err: unknown): BrowserCloudFatalError {
   const original = err instanceof Error ? err.message : String(err);
-  return new Error(`${browserSessionExpiredMessage()}. Original error: ${original}`);
+  return new BrowserCloudFatalError(`${browserSessionExpiredMessage()}. Original error: ${original}`, err);
 }
 
 function readPluginCfg(api: any): PluginCfg {
@@ -272,6 +272,10 @@ IMPORTANT:
           const normalizedErr = isBuSessionExpiredFromStatus(statusJson)
             ? toBrowserSessionExpiredError(err)
             : err;
+
+          if (isBrowserCloudFatalError(normalizedErr)) {
+            (ctrl as any)["sessions"]?.invalidate?.(`fatal:${action}`);
+          }
 
           // eslint-disable-next-line no-console
           console.error("[browser-cloud] tool error", {

@@ -183,6 +183,26 @@ export class BrowserUseCloudSessionManager {
     this.idleTimer.unref?.();
   }
 
+  invalidate(reason?: string): void {
+    // eslint-disable-next-line no-console
+    console.error("[browser-cloud] invalidate()", {
+      reason: reason ?? "unknown",
+      sessionId: this.session?.id ?? null,
+      cdpUrl: this.session?.cdpUrl ?? null,
+      at: new Date().toISOString(),
+    });
+    this.session = null;
+    this.lastResolvedWsUrl = null;
+    this.startedAtMs = null;
+    this.lastUsedAtMs = null;
+    this.creating = null;
+    if (this.idleTimer) {
+      clearTimeout(this.idleTimer);
+      this.idleTimer = null;
+    }
+    void closePlaywrightBrowserConnection().catch(() => {});
+  }
+
   async ensure(): Promise<{ session: BuSession; cdpUrl: string }> {
     if (this.session?.id && this.session?.cdpUrl) {
       // eslint-disable-next-line no-console
