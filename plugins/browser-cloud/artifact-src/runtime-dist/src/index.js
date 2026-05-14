@@ -279,6 +279,6 @@ ${sample}`;
             }
             return { content: [{ type: "json", json }] };
         },
-    }, { optional: true });
+    });
 }
 //# sourceMappingURL=index.js.map

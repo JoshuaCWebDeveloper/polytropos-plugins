@@ -322,6 +322,5 @@ ${sample}`;
         return { content: [{ type: "json", json }] };
       },
     },
-    { optional: true },
   );
 }
