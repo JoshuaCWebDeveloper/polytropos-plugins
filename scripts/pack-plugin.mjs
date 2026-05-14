@@ -19,7 +19,16 @@ const requiredEntries = [
   ['package.json', 'package.json'],
 ];
 
-function rewritePackagedManifest(rawManifest) {
+function rewritePackagedManifestForRoot(rawManifest) {
+  // Root deploy convention: OpenClaw points at `dist/plugins/<name>`, so the
+  // manifest entry must include the `dist/` prefix (e.g. `dist/index.js`).
+  const manifest = JSON.parse(rawManifest);
+  return `${JSON.stringify(manifest, null, 2)}\n`;
+}
+
+function rewritePackagedManifestForDistDir(rawManifest) {
+  // Alternate deploy convention: OpenClaw points at `dist/plugins/<name>/dist`,
+  // so the manifest entry must be relative to that folder (e.g. `index.js`).
   const manifest = JSON.parse(rawManifest);
   if (typeof manifest.entry === 'string' && manifest.entry.startsWith('dist/')) {
     manifest.entry = manifest.entry.slice('dist/'.length);
@@ -54,11 +63,13 @@ for (const [sourceName, targetName] of requiredEntries) {
 }
 
 const sourceManifestPath = path.join(pluginRoot, 'openclaw.plugin.json');
-const packagedManifest = rewritePackagedManifest(await fs.readFile(sourceManifestPath, 'utf8'));
+const rawManifest = await fs.readFile(sourceManifestPath, 'utf8');
+const rootManifest = rewritePackagedManifestForRoot(rawManifest);
+const distDirManifest = rewritePackagedManifestForDistDir(rawManifest);
 
-await fs.writeFile(path.join(outputRoot, 'openclaw.plugin.json'), packagedManifest);
+await fs.writeFile(path.join(outputRoot, 'openclaw.plugin.json'), rootManifest);
 await fs.mkdir(path.join(outputRoot, 'dist'), { recursive: true });
-await fs.writeFile(path.join(outputRoot, 'dist', 'openclaw.plugin.json'), packagedManifest);
+await fs.writeFile(path.join(outputRoot, 'dist', 'openclaw.plugin.json'), distDirManifest);
 
 const hooksPath = path.join(pluginRoot, 'hooks');
 

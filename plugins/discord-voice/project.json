@@ -15,14 +15,14 @@
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
       "options": {
-        "command": "node scripts/deploy-plugin.mjs symlink dist/plugins/discord-voice/dist discord-voice"
+        "command": "node scripts/deploy-plugin.mjs symlink dist/plugins/discord-voice discord-voice"
       }
     },
     "deploy-prod": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
       "options": {
-        "command": "node scripts/deploy-plugin.mjs copy dist/plugins/discord-voice/dist discord-voice"
+        "command": "node scripts/deploy-plugin.mjs copy dist/plugins/discord-voice discord-voice"
       }
     }
   }
