@@ -86,12 +86,58 @@ await fs.mkdir(destRoot, { recursive: true });
 
 await fs.rm(dest, { recursive: true, force: true });
 
+async function readPackageJson(rootDir) {
+  const pkgPath = path.join(rootDir, 'package.json');
+  try {
+    const raw = await fs.readFile(pkgPath, 'utf8');
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+async function hasRuntimeDeps(pkg) {
+  if (!pkg || typeof pkg !== 'object') return false;
+  const deps = pkg.dependencies && typeof pkg.dependencies === 'object' ? Object.keys(pkg.dependencies) : [];
+  const optDeps = pkg.optionalDependencies && typeof pkg.optionalDependencies === 'object' ? Object.keys(pkg.optionalDependencies) : [];
+  return deps.length + optDeps.length > 0;
+}
+
+async function materializeRuntimeDeps(pluginDir, pkg) {
+  if (!(await hasRuntimeDeps(pkg))) return;
+
+  // Deploy is meant to produce runnable extensions under ~/.openclaw/extensions/<name>.
+  // For external plugins, that means runtime deps must exist relative to that plugin dir.
+  // Install prod deps only, and never run install scripts.
+  console.log(`[deploy] installing runtime deps for ${name}...`);
+  const { spawn } = await import('node:child_process');
+  await new Promise((resolve, reject) => {
+    const child = spawn(
+      'npm',
+      ['install', '--omit=dev', '--no-save', '--silent', '--ignore-scripts'],
+      { cwd: pluginDir, stdio: 'inherit' },
+    );
+    child.on('error', reject);
+    child.on('close', (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(`npm install failed (code ${code})`));
+    });
+  });
+}
+
 if (mode === 'symlink') {
   await fs.symlink(resolvedRoot, dest, 'dir');
   console.log(`symlinked ${dest} -> ${resolvedRoot}`);
+  // In symlink mode, the source tree is the runtime tree, so we do not run installs here.
+  // (If desired, callers should install deps in the source tree.)
 } else if (mode === 'copy') {
   await fs.cp(resolvedRoot, dest, { recursive: true });
   console.log(`copied ${resolvedRoot} -> ${dest}`);
+
+  const pkg = await readPackageJson(dest);
+  if (await hasRuntimeDeps(pkg)) {
+    await materializeRuntimeDeps(dest, pkg);
+  }
 } else {
   console.error('mode must be symlink or copy');
   process.exit(2);
