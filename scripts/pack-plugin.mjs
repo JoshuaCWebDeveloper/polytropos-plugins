@@ -23,6 +23,13 @@ function rewritePackagedManifestForRoot(rawManifest) {
   // Root deploy convention: OpenClaw points at `dist/plugins/<name>`, so the
   // manifest entry must include the `dist/` prefix (e.g. `dist/index.js`).
   const manifest = JSON.parse(rawManifest);
+
+  // If the source manifest is authored relative to the dist dir (e.g. "index.js"),
+  // rewrite it for the root deploy shape.
+  if (typeof manifest.entry === 'string' && !manifest.entry.startsWith('dist/')) {
+    manifest.entry = `dist/${manifest.entry}`;
+  }
+
   return `${JSON.stringify(manifest, null, 2)}\n`;
 }
 
@@ -64,10 +71,11 @@ for (const [sourceName, targetName] of requiredEntries) {
 
 const sourceManifestPath = path.join(pluginRoot, 'openclaw.plugin.json');
 const rawManifest = await fs.readFile(sourceManifestPath, 'utf8');
-const rootManifest = rewritePackagedManifestForRoot(rawManifest);
+// Canonical contract: plugin root is the manifest directory.
+// We deploy external plugins by pointing OpenClaw at `~/.openclaw/extensions/<id>/dist`.
+// Therefore we only ship the manifest in the dist directory, with an entry relative to it.
 const distDirManifest = rewritePackagedManifestForDistDir(rawManifest);
 
-await fs.writeFile(path.join(outputRoot, 'openclaw.plugin.json'), rootManifest);
 await fs.mkdir(path.join(outputRoot, 'dist'), { recursive: true });
 await fs.writeFile(path.join(outputRoot, 'dist', 'openclaw.plugin.json'), distDirManifest);
 

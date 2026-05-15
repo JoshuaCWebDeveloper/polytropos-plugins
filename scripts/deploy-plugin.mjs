@@ -24,7 +24,8 @@ async function resolvePluginRoot(candidatePath, pluginName) {
   const manifestCandidates = resolvedCandidate.endsWith('openclaw.plugin.json')
     ? [resolvedCandidate]
     : [
-        path.join(resolvedCandidate, 'openclaw.plugin.json'),
+        // Canonical contract: plugin root is dist/ (manifest directory).
+        // We intentionally do NOT support root-level manifests for packaged plugins.
         path.join(resolvedCandidate, 'dist', 'openclaw.plugin.json'),
       ];
 
@@ -81,6 +82,7 @@ const home = process.env.HOME || '/home/ec2-user';
 const destRoot = path.join(home, '.openclaw', 'extensions');
 const dest = path.join(destRoot, name);
 const resolvedRoot = await resolvePluginRoot(src, name);
+const resolvedCandidate = path.resolve(src);
 
 await fs.mkdir(destRoot, { recursive: true });
 
@@ -133,6 +135,19 @@ if (mode === 'symlink') {
 } else if (mode === 'copy') {
   await fs.cp(resolvedRoot, dest, { recursive: true });
   console.log(`copied ${resolvedRoot} -> ${dest}`);
+
+  // If we copied from a parent artifact root, also copy package.json into the deployed
+  // plugin root so dependency materialization can occur.
+  // Example source shape:
+  //   dist/plugins/<id>/{ package.json, dist/openclaw.plugin.json, dist/index.js }
+  // Example deployed plugin root shape:
+  //   ~/.openclaw/extensions/<id>/{ openclaw.plugin.json, index.js, package.json }
+  if (!resolvedCandidate.endsWith('openclaw.plugin.json') && !resolvedCandidate.endsWith(path.join('dist'))) {
+    const candidatePkg = path.join(resolvedCandidate, 'package.json');
+    if (await pathExists(candidatePkg)) {
+      await fs.copyFile(candidatePkg, path.join(dest, 'package.json'));
+    }
+  }
 
   const pkg = await readPackageJson(dest);
   if (await hasRuntimeDeps(pkg)) {
