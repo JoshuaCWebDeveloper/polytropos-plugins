@@ -4,6 +4,7 @@ node_modules/
 # build outputs
 /dist/
 plugins/*/dist/
+plugins/*/dist-test/
 
 # Nx local state
 .nx/cache/
@@ -17,4 +18,3 @@ plugins/*/dist/
 
 # Nx local state (entire dir)
 .nx/
-

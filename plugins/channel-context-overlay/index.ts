@@ -7,6 +7,15 @@
 
 const fs = require("fs");
 
+const ChannelContextOverlayToolSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    action: { type: "string", enum: ["status"] },
+  },
+  required: ["action"],
+} as const;
+
 function extractDiscordChannelId(sessionKey?: string): string | null {
   if (!sessionKey) return null;
   const m = String(sessionKey).match(/:discord:channel:(\d+)/);
@@ -22,6 +31,20 @@ function isGatewayRuntime(): boolean {
 }
 
 export default function register(api: any) {
+  api.registerTool({
+    name: "channel_context_overlay",
+    label: "Channel Context Overlay",
+    description: "Report current channel-context-overlay configuration and runtime gating",
+    parameters: ChannelContextOverlayToolSchema,
+    async execute() {
+      const cfg = api.config?.get?.() ?? {};
+      const overlaysDir =
+        cfg.overlaysDir || "/home/ec2-user/.openclaw/workspace-discord-general/context-overlays/discord";
+      const payload = { ok: true, overlaysDir, gatewayRuntime: isGatewayRuntime() };
+      return { content: [{ type: "text", text: JSON.stringify(payload, null, 2) }], details: payload };
+    },
+  });
+
   if (!isGatewayRuntime()) return;
 
   api.on("before_prompt_build", (event: any, ctx: any) => {
