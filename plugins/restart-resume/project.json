@@ -11,6 +11,13 @@
         "command": "pnpm run build"
       }
     },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "plugins/restart-resume",
+        "command": "pnpm run test"
+      }
+    },
     "deploy-dev": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],

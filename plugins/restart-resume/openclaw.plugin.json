@@ -4,6 +4,9 @@
   "version": "0.1.0",
   "description": "On gateway start, if a copied restart sentinel exists, post a 'Gateway successfully restarted' message via send-to-channel.sh to trigger a fresh agent turn.",
   "entry": "dist/index.js",
+  "activation": {
+    "onStartup": true
+  },
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -28,13 +31,13 @@
         "type": "number",
         "default": 60000,
         "minimum": 1000,
-        "description": "How long to wait for `openclaw health --json` to succeed before giving up"
+        "description": "How long to retry copied sentinel delivery after the first send failure"
       },
       "healthPollIntervalMs": {
         "type": "number",
         "default": 500,
         "minimum": 100,
-        "description": "Polling interval while waiting for health"
+        "description": "Delay between copied sentinel delivery retries"
       }
     }
   }
