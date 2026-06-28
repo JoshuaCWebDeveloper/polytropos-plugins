@@ -1,11 +1,11 @@
 // Channel Context Overlay plugin
 //
-// Injects per-channel system context from live-editable overlay files:
+// Injects per-channel developer context from live-editable overlay files:
 //   <overlaysDir>/channel-<discordChannelId>.md
 //
-// This runs on every prompt build. Keep it lightweight.
+// This runs on every Codex turn. Keep it lightweight.
 
-const fs = require("fs");
+import fs from "node:fs";
 
 const ChannelContextOverlayToolSchema = {
   type: "object",
@@ -20,6 +20,90 @@ function extractDiscordChannelId(sessionKey?: string): string | null {
   if (!sessionKey) return null;
   const m = String(sessionKey).match(/:discord:channel:(\d+)/);
   return (m && m[1]) || null;
+}
+
+function normalizeDiscordChannelId(value: unknown): string | null {
+  if (typeof value === "string" && /^\d+$/.test(value)) return value;
+  if (typeof value === "number" && Number.isInteger(value) && value > 0) return String(value);
+  return null;
+}
+
+function extractDiscordChannelIdFromHook(
+  event: any,
+  ctx: any
+): { channelId: string | null; source: string | null } {
+  const dc = ctx?.deliveryContext ?? event?.deliveryContext;
+  const channelIdFromDc =
+    dc?.provider === "discord"
+      ? normalizeDiscordChannelId(dc?.peer?.id ?? dc?.chatId ?? dc?.channelId ?? null)
+      : null;
+
+  const sessionKey = ctx?.sessionKey ?? event?.sessionKey ?? event?.session?.key;
+  const channelIdFromKey = extractDiscordChannelId(sessionKey);
+
+  const messageProvider = ctx?.messageProvider ?? event?.messageProvider ?? null;
+  const isDiscordContext =
+    messageProvider === "discord" ||
+    dc?.provider === "discord" ||
+    (typeof sessionKey === "string" && sessionKey.includes(":discord:"));
+
+  const ctxCandidates = [
+    ctx?.channelId,
+    event?.channelId,
+    ctx?.channel?.id,
+    event?.channel?.id,
+    ctx?.peer?.id,
+    event?.peer?.id,
+  ];
+  const channelIdFromCtx = ctxCandidates.map(normalizeDiscordChannelId).find(Boolean) ?? null;
+
+  if (channelIdFromDc) return { channelId: channelIdFromDc, source: "deliveryContext" };
+  if (isDiscordContext && channelIdFromCtx) return { channelId: channelIdFromCtx, source: "hookContext" };
+  if (channelIdFromKey) return { channelId: channelIdFromKey, source: "sessionKey" };
+  return { channelId: null, source: null };
+}
+
+function formatOverlayDeveloperInstructions(channelId: string, text: string): string {
+  return [
+    "OpenClaw plugin-injected system context. This block is not workspace file content.",
+    "",
+    `[Channel Context Overlay: discord channel ${channelId}]`,
+    text,
+  ].join("\n");
+}
+
+function resolveOverlay(params: {
+  api: any;
+  event: any;
+  ctx: any;
+  hookName: "before_prompt_build" | "before_turn_developer_instructions";
+}): { channelId: string; text: string } | null {
+  const { channelId, source } = extractDiscordChannelIdFromHook(params.event, params.ctx);
+  if (!channelId) return null;
+
+  const cfg = params.api.config?.get?.() ?? {};
+  const overlaysDir =
+    cfg.overlaysDir || "/home/ec2-user/.openclaw/workspace-discord-general/context-overlays/discord";
+  const path = `${overlaysDir}/channel-${channelId}.md`;
+
+  let text: string;
+  try {
+    text = fs.readFileSync(path, "utf8");
+  } catch {
+    params.api.logger?.debug?.(
+      `[channel-context-overlay] MISS hook=${params.hookName} channelId=${channelId} source=${source ?? "unknown"} path=${path}`
+    );
+    return null;
+  }
+
+  const trimmed = String(text || "").trim();
+  if (!trimmed) return null;
+
+  params.api.logger?.info?.(
+    `[channel-context-overlay] HIT hook=${params.hookName} channelId=${channelId} source=${source ?? "unknown"} chars=${trimmed.length}`
+  );
+
+  return { channelId, text: trimmed };
 }
 
 function isGatewayRuntime(): boolean {
@@ -48,38 +132,35 @@ export default function register(api: any) {
   if (!isGatewayRuntime()) return;
 
   api.on("before_prompt_build", (event: any, ctx: any) => {
-    const dc = ctx?.deliveryContext ?? event?.deliveryContext;
-    const channelIdFromDc = dc?.provider === "discord" ? (dc?.peer?.id ?? dc?.chatId ?? null) : null;
+    const overlay = resolveOverlay({
+      api,
+      event,
+      ctx,
+      hookName: "before_prompt_build",
+    });
+    if (!overlay) return;
 
-    const sessionKey = ctx?.sessionKey ?? event?.sessionKey ?? event?.session?.key;
-    const channelIdFromKey = extractDiscordChannelId(sessionKey);
-
-    const channelId = (typeof channelIdFromDc === "string" ? channelIdFromDc : null) ?? channelIdFromKey;
-    if (!channelId) return;
-
-    const cfg = api.config?.get?.() ?? {};
-    const overlaysDir = cfg.overlaysDir || "/home/ec2-user/.openclaw/workspace-discord-general/context-overlays/discord";
-    const path = `${overlaysDir}/channel-${channelId}.md`;
-
-    let text: string;
-    try {
-      text = fs.readFileSync(path, "utf8");
-    } catch {
-      return;
-    }
-
-    const trimmed = String(text || "").trim();
-    if (!trimmed) return;
-
-    if (channelId === "1483991614736039936" || channelId === "1477482956523049052") {
-      api.logger?.info?.(`[channel-context-overlay] HIT channelId=${channelId} chars=${trimmed.length}`);
-    }
-
-    // Inject into system prompt space.
     return {
-      appendSystemContext: `\n\n[Channel Context Overlay: discord channel ${channelId}]\n${trimmed}\n`,
+      appendSystemContext: formatOverlayDeveloperInstructions(overlay.channelId, overlay.text),
     };
   });
 
-  api.logger?.info?.("[channel-context-overlay] loaded — before_prompt_build hook active");
+  api.on("before_turn_developer_instructions", (event: any, ctx: any) => {
+    const overlay = resolveOverlay({
+      api,
+      event,
+      ctx,
+      hookName: "before_turn_developer_instructions",
+    });
+    if (!overlay) return;
+
+    return {
+      appendDeveloperInstructions: formatOverlayDeveloperInstructions(
+        overlay.channelId,
+        overlay.text
+      ),
+    };
+  });
+
+  api.logger?.info?.("[channel-context-overlay] loaded - before_turn_developer_instructions hook active");
 }

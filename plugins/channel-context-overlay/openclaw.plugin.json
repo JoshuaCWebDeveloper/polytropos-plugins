@@ -3,6 +3,9 @@
   "name": "Channel Context Overlay",
   "description": "Inject per-channel system context (e.g. Software Engineering Mode operating contract) from live-editable overlay files.",
   "version": "0.2.1",
+  "contracts": {
+    "tools": ["channel_context_overlay"]
+  },
   "configSchema": {
     "type": "object",
     "additionalProperties": false,

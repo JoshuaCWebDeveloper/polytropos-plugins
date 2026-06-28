@@ -1,0 +1,36 @@
+{
+  "name": "polytropos-cli",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "plugins/polytropos-cli/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "plugins/polytropos-cli",
+        "command": "pnpm run build"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "plugins/polytropos-cli",
+        "command": "pnpm run test"
+      }
+    },
+    "deploy-dev": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "command": "node scripts/deploy-plugin.mjs symlink dist/plugins/polytropos-cli polytropos-cli"
+      }
+    },
+    "deploy-prod": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "command": "node scripts/deploy-plugin.mjs copy dist/plugins/polytropos-cli polytropos-cli"
+      }
+    }
+  }
+}

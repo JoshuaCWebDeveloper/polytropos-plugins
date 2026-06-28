@@ -1,0 +1,17 @@
+{
+  "id": "polytropos-cli",
+  "name": "Polytropos CLI",
+  "version": "0.1.0",
+  "description": "Overrides hooks relay so Polytropos can route native hook traffic through a reusable daemon.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true
+      }
+    }
+  },
+  "entry": "dist/index.js"
+}
