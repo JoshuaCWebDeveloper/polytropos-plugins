@@ -220,6 +220,7 @@ export async function runPolytroposHooksRelayCli(
   }
 
   try {
+    console.error("[polytropos-cli] hooks relay invoking plugin gateway");
     const response = (await callGateway(
       POLYTROPOS_HOOKS_RELAY_GATEWAY_METHOD,
       toGatewayRpcOpts(timeoutMs),
@@ -232,6 +233,7 @@ export async function runPolytroposHooksRelayCli(
       },
       { scopes: ["operator.admin"] },
     )) as NativeHookRelayProcessResponse;
+    console.error("[polytropos-cli] hooks relay plugin gateway succeeded");
     writeText(stdout, response.stdout);
     writeText(stderr, response.stderr);
     return response.exitCode;
@@ -241,6 +243,7 @@ export async function runPolytroposHooksRelayCli(
   }
 
   try {
+    console.error("[polytropos-cli] hooks relay falling back to nativeHook.invoke");
     const response = (await callGateway(
       "nativeHook.invoke",
       toGatewayRpcOpts(timeoutMs),
@@ -253,10 +256,12 @@ export async function runPolytroposHooksRelayCli(
       },
       { scopes: ["operator.admin"] },
     )) as NativeHookRelayProcessResponse;
+    console.error("[polytropos-cli] hooks relay nativeHook.invoke succeeded");
     writeText(stdout, response.stdout);
     writeText(stderr, response.stderr);
     return response.exitCode;
   } catch (error) {
+    console.error("[polytropos-cli] hooks relay nativeHook.invoke unavailable");
     writeText(stderr, formatRelayCliError("native hook relay unavailable", error));
     const response = renderUnavailableResponse({
       event,
@@ -307,6 +312,7 @@ export function createPolytroposCliPlugin(deps: PluginDeps = {}) {
               )
               .option("--timeout <ms>", "Gateway timeout in ms", "5000")
               .action(async (opts: NativeHookRelayCliOptions) => {
+                console.error("[polytropos-cli] plugin CLI override handling hooks relay");
                 process.exitCode = await runPolytroposHooksRelayCli(opts, deps);
               });
           },
@@ -333,7 +339,10 @@ export function createPolytroposCliPlugin(deps: PluginDeps = {}) {
       api.registerGatewayMethod(
         POLYTROPOS_HOOKS_RELAY_GATEWAY_METHOD,
         async ({ params, respond }) => {
-          respond(true, await daemon.invoke((params ?? {}) as NativeHookRelayGatewayParams));
+          api.logger.info?.("[polytropos-cli] gateway polytropos.hooksRelay.invoke invoked");
+          const response = await daemon.invoke((params ?? {}) as NativeHookRelayGatewayParams);
+          api.logger.info?.("[polytropos-cli] gateway polytropos.hooksRelay.invoke succeeded");
+          respond(true, response);
         },
       );
     },
