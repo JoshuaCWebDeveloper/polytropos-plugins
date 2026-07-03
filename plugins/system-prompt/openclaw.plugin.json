@@ -1,0 +1,40 @@
+{
+  "id": "system-prompt",
+  "name": "System Prompt",
+  "version": "0.1.0",
+  "description": "Mirrors observed OpenClaw developer instructions into Codex app-server prompt builds and the configured model_instructions_file.",
+  "entry": "dist/index.js",
+  "activation": {
+    "onStartup": true
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": { "type": "boolean", "default": true },
+      "codexHome": {
+        "type": "string",
+        "description": "Codex home directory. Defaults to CODEX_HOME or the OpenClaw default agent's codex-home."
+      },
+      "promptFile": {
+        "type": "string",
+        "default": "openclaw-app-server-instructions.md",
+        "description": "Generated prompt file path, relative to codexHome unless absolute."
+      },
+      "startupDeveloperInstructionsFile": {
+        "type": "string",
+        "description": "Full OpenClaw developer instructions file. Defaults to the bundled openclaw-developer-instructions.md next to this plugin entry."
+      },
+      "hookPriority": {
+        "type": "number",
+        "default": 10000,
+        "description": "Priority used when this OpenClaw runtime supports api.on options."
+      },
+      "debugHook": {
+        "type": "boolean",
+        "default": false,
+        "description": "Log bounded before_prompt_build diagnostics without prompt contents."
+      }
+    }
+  }
+}

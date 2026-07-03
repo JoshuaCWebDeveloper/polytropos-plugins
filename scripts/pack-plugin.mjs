@@ -79,6 +79,24 @@ const distDirManifest = rewritePackagedManifestForDistDir(rawManifest);
 await fs.mkdir(path.join(outputRoot, 'dist'), { recursive: true });
 await fs.writeFile(path.join(outputRoot, 'dist', 'openclaw.plugin.json'), distDirManifest);
 
+const bundledInstructionsName = 'openclaw-developer-instructions.md';
+const bundledInstructionsPath = path.join(pluginRoot, bundledInstructionsName);
+try {
+  await fs.access(bundledInstructionsPath);
+  await fs.copyFile(
+    bundledInstructionsPath,
+    path.join(pluginRoot, 'dist', bundledInstructionsName),
+  );
+  await fs.copyFile(
+    bundledInstructionsPath,
+    path.join(outputRoot, 'dist', bundledInstructionsName),
+  );
+} catch (error) {
+  if (error && error.code !== 'ENOENT') {
+    throw error;
+  }
+}
+
 const hooksPath = path.join(pluginRoot, 'hooks');
 
 try {
