@@ -1,7 +1,7 @@
 {
   "id": "channel-context-overlay",
   "name": "Channel Context Overlay",
-  "description": "Inject per-channel system context (e.g. Software Engineering Mode operating contract) from live-editable overlay files.",
+  "description": "Inject per-channel system context (e.g. Software Engineering Mode operating contract) from live-editable per-channel overlay directories.",
   "version": "0.2.1",
   "contracts": {
     "tools": ["channel_context_overlay"]
@@ -12,7 +12,7 @@
     "properties": {
       "overlaysDir": {
         "type": "string",
-        "description": "Directory containing overlay files named channel-<id>.md"
+        "description": "Directory containing per-channel overlay directories named channel-<id>"
       }
     }
   },

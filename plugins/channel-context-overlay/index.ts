@@ -1,7 +1,7 @@
 // Channel Context Overlay plugin
 //
-// Injects per-channel developer context from live-editable overlay files:
-//   <overlaysDir>/channel-<discordChannelId>.md
+// Injects per-channel developer context from live-editable overlay directories:
+//   <overlaysDir>/channel-<discordChannelId>/*
 //
 // This runs on every Codex turn. Keep it lightweight.
 
@@ -72,6 +72,27 @@ function formatOverlayDeveloperInstructions(channelId: string, text: string): st
   ].join("\n");
 }
 
+function compareFilenames(a: string, b: string): number {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
+}
+
+export function readChannelOverlayText(overlaysDir: string, channelId: string): string | null {
+  const channelDir = `${overlaysDir}/channel-${channelId}`;
+  const files = fs
+    .readdirSync(channelDir, { withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .map((entry) => entry.name)
+    .sort(compareFilenames);
+
+  const chunks = files
+    .map((filename) => fs.readFileSync(`${channelDir}/${filename}`, "utf8").trim())
+    .filter((text) => text.length > 0);
+
+  return chunks.length > 0 ? chunks.join("\n\n") : null;
+}
+
 function resolveOverlay(params: {
   api: any;
   event: any;
@@ -84,26 +105,25 @@ function resolveOverlay(params: {
   const cfg = params.api.config?.get?.() ?? {};
   const overlaysDir =
     cfg.overlaysDir || "/home/ec2-user/.openclaw/workspace-discord-general/context-overlays/discord";
-  const path = `${overlaysDir}/channel-${channelId}.md`;
+  const channelDir = `${overlaysDir}/channel-${channelId}`;
 
-  let text: string;
+  let text: string | null;
   try {
-    text = fs.readFileSync(path, "utf8");
+    text = readChannelOverlayText(overlaysDir, channelId);
   } catch {
     params.api.logger?.debug?.(
-      `[channel-context-overlay] MISS hook=${params.hookName} channelId=${channelId} source=${source ?? "unknown"} path=${path}`
+      `[channel-context-overlay] MISS hook=${params.hookName} channelId=${channelId} source=${source ?? "unknown"} path=${channelDir}`
     );
     return null;
   }
 
-  const trimmed = String(text || "").trim();
-  if (!trimmed) return null;
+  if (!text) return null;
 
   params.api.logger?.info?.(
-    `[channel-context-overlay] HIT hook=${params.hookName} channelId=${channelId} source=${source ?? "unknown"} chars=${trimmed.length}`
+    `[channel-context-overlay] HIT hook=${params.hookName} channelId=${channelId} source=${source ?? "unknown"} chars=${text.length}`
   );
 
-  return { channelId, text: trimmed };
+  return { channelId, text };
 }
 
 function isGatewayRuntime(): boolean {
