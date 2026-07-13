@@ -41,11 +41,62 @@ test("registers a nested hooks relay CLI override in cli-metadata mode", () => {
   ]);
 });
 
+test("logs plugin ownership while constructing the hooks relay command", async () => {
+  const plugin = createPolytroposCliPlugin({
+    argv: ["node", "polytropos.mjs", "hooks", "relay", "--help"],
+  });
+  let cliRegistrar:
+    | ((ctx: { program: unknown }) => void | Promise<void>)
+    | undefined;
+  const command = {
+    command() {
+      return this;
+    },
+    description() {
+      return this;
+    },
+    requiredOption() {
+      return this;
+    },
+    option() {
+      return this;
+    },
+    action() {
+      return this;
+    },
+  };
+
+  plugin.register({
+    registrationMode: "cli-metadata",
+    pluginConfig: {},
+    registerCli: (registrar: (ctx: { program: unknown }) => void | Promise<void>) => {
+      cliRegistrar = registrar;
+    },
+  } as never);
+
+  assert.ok(cliRegistrar);
+  const originalConsoleError = console.error;
+  const consoleErrors: string[] = [];
+  console.error = (...args: unknown[]) => {
+    consoleErrors.push(args.map(String).join(" "));
+  };
+  try {
+    await cliRegistrar({ program: command });
+  } finally {
+    console.error = originalConsoleError;
+  }
+
+  assert.deepEqual(consoleErrors, [
+    "[polytropos-cli] plugin CLI override handling hooks relay",
+  ]);
+});
+
 test("the CLI override logs when it handles hooks relay", async () => {
   const stdin = new PassThrough();
   stdin.end("{}");
   const plugin = createPolytroposCliPlugin({
     callGatewayFromCli: async () => ({ stdout: "", stderr: "", exitCode: 0 }),
+    argv: ["node", "polytropos.mjs", "hooks", "relay"],
     stdin,
   });
   let cliRegistrar:
@@ -103,7 +154,137 @@ test("the CLI override logs when it handles hooks relay", async () => {
     process.exitCode = previousExitCode;
   }
 
-  assert.equal(consoleErrors[0], "[polytropos-cli] plugin CLI override handling hooks relay");
+  assert.equal(consoleErrors[0], "[polytropos-cli] hooks relay validating options");
+});
+
+test("logs plugin ownership before rejecting missing required options", async () => {
+  const stdin = new PassThrough();
+  const stderr = new PassThrough();
+  stdin.end("{}");
+  let stderrText = "";
+  stderr.on("data", (chunk) => {
+    stderrText += String(chunk);
+  });
+  const originalConsoleError = console.error;
+  const consoleErrors: string[] = [];
+  console.error = (...args: unknown[]) => {
+    consoleErrors.push(args.map(String).join(" "));
+  };
+
+  let exitCode: number;
+  try {
+    exitCode = await runPolytroposHooksRelayCli({}, { stdin, stderr });
+  } finally {
+    console.error = originalConsoleError;
+  }
+
+  assert.equal(exitCode, 1);
+  assert.equal(consoleErrors[0], "[polytropos-cli] hooks relay validating options");
+  assert.match(stderrText, /Missing required option --provider/);
+});
+
+for (const argv of [
+  ["node", "polytropos.mjs", "hooks", "relay", "--help"],
+  ["node", "polytropos.mjs", "hooks", "relay", "--provider", "codex"],
+]) {
+  test(`the CLI override proves ownership before validation for ${argv.slice(4).join(" ")}`, async () => {
+    const consoleErrors: string[] = [];
+    const originalConsoleError = console.error;
+    let actionHandler: ((opts: NativeHookRelayCliOptions) => Promise<void> | void) | undefined;
+    let cliRegistrar:
+      | ((ctx: { program: unknown }) => void | Promise<void>)
+      | undefined;
+    const command = {
+      command() {
+        return this;
+      },
+      description() {
+        return this;
+      },
+      requiredOption() {
+        return this;
+      },
+      option() {
+        return this;
+      },
+      action(handler: (opts: NativeHookRelayCliOptions) => Promise<void> | void) {
+        actionHandler = handler;
+        return this;
+      },
+    };
+    const plugin = createPolytroposCliPlugin({ argv });
+
+    plugin.register({
+      registrationMode: "cli-metadata",
+      pluginConfig: {},
+      registerCli: (registrar: (ctx: { program: unknown }) => void | Promise<void>) => {
+        cliRegistrar = registrar;
+      },
+    } as never);
+
+    console.error = (...args: unknown[]) => {
+      consoleErrors.push(args.map(String).join(" "));
+    };
+    try {
+      assert.ok(cliRegistrar);
+      await cliRegistrar({ program: command });
+    } finally {
+      console.error = originalConsoleError;
+    }
+
+    assert.ok(actionHandler);
+    assert.deepEqual(consoleErrors, [
+      "[polytropos-cli] plugin CLI override handling hooks relay",
+    ]);
+  });
+}
+
+test("does not log the proof marker while registering unrelated CLI paths", async () => {
+  const consoleErrors: string[] = [];
+  const originalConsoleError = console.error;
+  let cliRegistrar:
+    | ((ctx: { program: unknown }) => void | Promise<void>)
+    | undefined;
+  const command = {
+    command() {
+      return this;
+    },
+    description() {
+      return this;
+    },
+    requiredOption() {
+      return this;
+    },
+    option() {
+      return this;
+    },
+    action() {
+      return this;
+    },
+  };
+  const plugin = createPolytroposCliPlugin({
+    argv: ["node", "polytropos.mjs", "hooks", "list"],
+  });
+
+  plugin.register({
+    registrationMode: "cli-metadata",
+    pluginConfig: {},
+    registerCli: (registrar: (ctx: { program: unknown }) => void | Promise<void>) => {
+      cliRegistrar = registrar;
+    },
+  } as never);
+
+  console.error = (...args: unknown[]) => {
+    consoleErrors.push(args.map(String).join(" "));
+  };
+  try {
+    assert.ok(cliRegistrar);
+    await cliRegistrar({ program: command });
+  } finally {
+    console.error = originalConsoleError;
+  }
+
+  assert.deepEqual(consoleErrors, []);
 });
 
 test("registers the daemon service and gateway method in full mode", async () => {
@@ -259,6 +440,7 @@ test("wires the daemon transport ahead of the core gateway fallback", async () =
 
   assert.equal(exitCode, 5);
   assert.deepEqual(consoleErrors, [
+    "[polytropos-cli] hooks relay validating options",
     "[polytropos-cli] hooks relay invoking plugin gateway",
     "[polytropos-cli] hooks relay plugin gateway succeeded",
   ]);
@@ -323,6 +505,7 @@ test("falls back to nativeHook.invoke when the reusable daemon is unavailable", 
 
   assert.equal(exitCode, 6);
   assert.deepEqual(consoleErrors, [
+    "[polytropos-cli] hooks relay validating options",
     "[polytropos-cli] hooks relay invoking plugin gateway",
     "[polytropos-cli] hooks relay falling back to nativeHook.invoke",
     "[polytropos-cli] hooks relay nativeHook.invoke succeeded",
@@ -376,6 +559,7 @@ test("logs when fallback nativeHook.invoke is unavailable", async () => {
 
   assert.equal(exitCode, 0);
   assert.deepEqual(consoleErrors, [
+    "[polytropos-cli] hooks relay validating options",
     "[polytropos-cli] hooks relay invoking plugin gateway",
     "[polytropos-cli] hooks relay falling back to nativeHook.invoke",
     "[polytropos-cli] hooks relay nativeHook.invoke unavailable",

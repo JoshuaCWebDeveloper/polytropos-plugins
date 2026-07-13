@@ -25,6 +25,7 @@ export type NativeHookRelayCliOptions = {
 type PluginDeps = {
   callGatewayFromCli?: typeof callGatewayFromCli;
   invokeNativeHookRelay?: typeof invokeNativeHookRelay;
+  argv?: readonly string[];
   stdin?: NodeJS.ReadableStream;
   stdout?: NodeJS.WritableStream;
   stderr?: NodeJS.WritableStream;
@@ -55,6 +56,10 @@ type HooksRelayDaemon = {
 
 function isEnabled(config: PluginConfig | undefined): boolean {
   return config?.enabled !== false;
+}
+
+function isHooksRelayInvocation(argv: readonly string[]): boolean {
+  return argv[2] === "hooks" && argv[3] === "relay";
 }
 
 function toGatewayRpcOpts(timeoutMs: number | undefined): { timeout?: string } {
@@ -185,6 +190,7 @@ export async function runPolytroposHooksRelayCli(
   opts: NativeHookRelayCliOptions,
   deps: Pick<PluginDeps, "callGatewayFromCli" | "stdin" | "stdout" | "stderr"> = {},
 ): Promise<number> {
+  console.error("[polytropos-cli] hooks relay validating options");
   const callGateway = deps.callGatewayFromCli ?? callGatewayFromCli;
   const stdin = deps.stdin ?? process.stdin;
   const stdout = deps.stdout ?? process.stdout;
@@ -298,6 +304,9 @@ export function createPolytroposCliPlugin(deps: PluginDeps = {}) {
       ) {
         api.registerCli(
           ({ program }) => {
+            if (isHooksRelayInvocation(deps.argv ?? process.argv)) {
+              console.error("[polytropos-cli] plugin CLI override handling hooks relay");
+            }
             const hooks = program as unknown as CliCommand;
             hooks
               .command("relay", { hidden: true })
@@ -312,7 +321,6 @@ export function createPolytroposCliPlugin(deps: PluginDeps = {}) {
               )
               .option("--timeout <ms>", "Gateway timeout in ms", "5000")
               .action(async (opts: NativeHookRelayCliOptions) => {
-                console.error("[polytropos-cli] plugin CLI override handling hooks relay");
                 process.exitCode = await runPolytroposHooksRelayCli(opts, deps);
               });
           },
