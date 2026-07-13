@@ -54,6 +54,27 @@ function formatOverlayDeveloperInstructions(channelId, text) {
   ].join("\n");
 }
 
+function compareFilenames(a, b) {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
+}
+
+function readChannelOverlayText(overlaysDir, channelId) {
+  const channelDir = `${overlaysDir}/channel-${channelId}`;
+  const files = fs
+    .readdirSync(channelDir, { withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .map((entry) => entry.name)
+    .sort(compareFilenames);
+
+  const chunks = files
+    .map((filename) => fs.readFileSync(`${channelDir}/${filename}`, "utf8").trim())
+    .filter((text) => text.length > 0);
+
+  return chunks.length > 0 ? chunks.join("\n\n") : null;
+}
+
 function resolveOverlay(api, event, ctx, hookName) {
   const { channelId, source } = extractDiscordChannelIdFromHook(event, ctx);
   if (!channelId) return null;
@@ -61,33 +82,32 @@ function resolveOverlay(api, event, ctx, hookName) {
   const cfg = (api.config && api.config.get && api.config.get()) || {};
   const overlaysDir =
     cfg.overlaysDir || "/home/ec2-user/.openclaw/workspace-discord-general/context-overlays/discord";
-  const path = `${overlaysDir}/channel-${channelId}.md`;
+  const channelDir = `${overlaysDir}/channel-${channelId}`;
 
   let text;
   try {
-    text = fs.readFileSync(path, "utf8");
+    text = readChannelOverlayText(overlaysDir, channelId);
   } catch {
     if (api.logger && api.logger.debug) {
       api.logger.debug(
-        `[channel-context-overlay] MISS hook=${hookName} channelId=${channelId} source=${source || "unknown"} path=${path}`
+        `[channel-context-overlay] MISS hook=${hookName} channelId=${channelId} source=${source || "unknown"} path=${channelDir}`
       );
     }
     return null;
   }
 
-  const trimmed = String(text || "").trim();
-  if (!trimmed) return null;
+  if (!text) return null;
 
   if (api.logger && api.logger.info) {
     api.logger.info(
-      `[channel-context-overlay] HIT hook=${hookName} channelId=${channelId} source=${source || "unknown"} chars=${trimmed.length}`
+      `[channel-context-overlay] HIT hook=${hookName} channelId=${channelId} source=${source || "unknown"} chars=${text.length}`
     );
   }
 
-  return { channelId, text: trimmed };
+  return { channelId, text };
 }
 
-module.exports = function register(api) {
+function register(api) {
   api.on("before_prompt_build", (event, ctx) => {
     const overlay = resolveOverlay(api, event, ctx, "before_prompt_build");
     if (!overlay) return;
@@ -109,4 +129,7 @@ module.exports = function register(api) {
   api.logger &&
     api.logger.info &&
     api.logger.info("[channel-context-overlay] loaded - before_turn_developer_instructions hook active");
-};
+}
+
+module.exports = register;
+module.exports.readChannelOverlayText = readChannelOverlayText;
