@@ -4,11 +4,42 @@ import { PassThrough } from "node:stream";
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 import type { NativeHookRelayCliOptions } from "./index.js";
 
+import cliMetadataPlugin from "./cli-metadata.js";
 import {
   createHooksRelayDaemon,
   createPolytroposCliPlugin,
   runPolytroposHooksRelayCli,
 } from "./index.js";
+
+test("lightweight CLI metadata claims hooks relay without importing the full plugin entrypoint", () => {
+  let cliRegistrar:
+    | ((ctx: { program: unknown }) => void | Promise<void>)
+    | undefined;
+  let cliOptions: Record<string, unknown> | undefined;
+
+  cliMetadataPlugin.register({
+    registrationMode: "cli-metadata",
+    pluginConfig: {},
+    registerCli: (
+      registrar: (ctx: { program: unknown }) => void | Promise<void>,
+      opts?: Parameters<OpenClawPluginApi["registerCli"]>[1],
+    ) => {
+      cliRegistrar = registrar;
+      cliOptions = opts as Record<string, unknown>;
+    },
+  } as never);
+
+  assert.ok(cliRegistrar);
+  assert.deepEqual(cliOptions?.parentPath, ["hooks"]);
+  assert.deepEqual(cliOptions?.commands, ["relay"]);
+  assert.deepEqual(cliOptions?.descriptors, [
+    {
+      name: "relay",
+      description: "Internal native harness hook relay",
+      hasSubcommands: false,
+    },
+  ]);
+});
 
 test("registers a nested hooks relay CLI override in cli-metadata mode", () => {
   const plugin = createPolytroposCliPlugin();

@@ -7,7 +7,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "rimraf dist && tsc -p tsconfig.json && node ../../scripts/pack-plugin.mjs polytropos-cli",
-    "test": "rimraf dist-test && tsc -p tsconfig.test.json && node --test dist-test/*.test.js"
+    "test": "rimraf dist-test && tsc -p tsconfig.test.json && node --test dist-test/*.test.js",
+    "test:build-metadata": "node --test build-metadata.test.mjs"
   },
   "dependencies": {
     "openclaw": "*"
