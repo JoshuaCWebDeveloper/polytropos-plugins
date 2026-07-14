@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
+import fs from "node:fs/promises";
 import test from "node:test";
 import { PassThrough } from "node:stream";
+import { fileURLToPath } from "node:url";
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 import type { NativeHookRelayCliOptions } from "./index.js";
 
@@ -10,6 +12,16 @@ import {
   createPolytroposCliPlugin,
   runPolytroposHooksRelayCli,
 } from "./index.js";
+
+test("plugin entrypoint does not statically import heavy hook relay runtimes", async () => {
+  const source = await fs.readFile(fileURLToPath(new URL("../src/index.ts", import.meta.url)), "utf8");
+
+  assert.doesNotMatch(source, /^import\s+(?!type\b).*from\s+["']openclaw\/plugin-sdk\/gateway-runtime["']/mu);
+  assert.doesNotMatch(
+    source,
+    /^import\s+(?!type\b).*from\s+["']openclaw\/plugin-sdk\/agent-harness-runtime["']/mu,
+  );
+});
 
 test("lightweight CLI metadata claims hooks relay without importing the full plugin entrypoint", () => {
   let cliRegistrar:
@@ -72,7 +84,7 @@ test("registers a nested hooks relay CLI override in cli-metadata mode", () => {
   ]);
 });
 
-test("logs plugin ownership while constructing the hooks relay command", async () => {
+test("does not write proof markers while constructing the hooks relay command", async () => {
   const plugin = createPolytroposCliPlugin({
     argv: ["node", "polytropos.mjs", "hooks", "relay", "--help"],
   });
@@ -117,12 +129,10 @@ test("logs plugin ownership while constructing the hooks relay command", async (
     console.error = originalConsoleError;
   }
 
-  assert.deepEqual(consoleErrors, [
-    "[polytropos-cli] plugin CLI override handling hooks relay",
-  ]);
+  assert.deepEqual(consoleErrors, []);
 });
 
-test("the CLI override logs when it handles hooks relay", async () => {
+test("the CLI override does not write proof markers when it handles hooks relay", async () => {
   const stdin = new PassThrough();
   stdin.end("{}");
   const plugin = createPolytroposCliPlugin({
@@ -185,10 +195,10 @@ test("the CLI override logs when it handles hooks relay", async () => {
     process.exitCode = previousExitCode;
   }
 
-  assert.equal(consoleErrors[0], "[polytropos-cli] hooks relay validating options");
+  assert.deepEqual(consoleErrors, []);
 });
 
-test("logs plugin ownership before rejecting missing required options", async () => {
+test("rejects missing required options without proof markers", async () => {
   const stdin = new PassThrough();
   const stderr = new PassThrough();
   stdin.end("{}");
@@ -210,7 +220,7 @@ test("logs plugin ownership before rejecting missing required options", async ()
   }
 
   assert.equal(exitCode, 1);
-  assert.equal(consoleErrors[0], "[polytropos-cli] hooks relay validating options");
+  assert.deepEqual(consoleErrors, []);
   assert.match(stderrText, /Missing required option --provider/);
 });
 
@@ -218,7 +228,7 @@ for (const argv of [
   ["node", "polytropos.mjs", "hooks", "relay", "--help"],
   ["node", "polytropos.mjs", "hooks", "relay", "--provider", "codex"],
 ]) {
-  test(`the CLI override proves ownership before validation for ${argv.slice(4).join(" ")}`, async () => {
+  test(`the CLI override stays quiet before validation for ${argv.slice(4).join(" ")}`, async () => {
     const consoleErrors: string[] = [];
     const originalConsoleError = console.error;
     let actionHandler: ((opts: NativeHookRelayCliOptions) => Promise<void> | void) | undefined;
@@ -264,9 +274,7 @@ for (const argv of [
     }
 
     assert.ok(actionHandler);
-    assert.deepEqual(consoleErrors, [
-      "[polytropos-cli] plugin CLI override handling hooks relay",
-    ]);
+    assert.deepEqual(consoleErrors, []);
   });
 }
 
@@ -470,11 +478,7 @@ test("wires the daemon transport ahead of the core gateway fallback", async () =
   }
 
   assert.equal(exitCode, 5);
-  assert.deepEqual(consoleErrors, [
-    "[polytropos-cli] hooks relay validating options",
-    "[polytropos-cli] hooks relay invoking plugin gateway",
-    "[polytropos-cli] hooks relay plugin gateway succeeded",
-  ]);
+  assert.deepEqual(consoleErrors, []);
   assert.equal(stdoutText, "daemon-out");
   assert.equal(stderrText, "daemon-err");
   assert.deepEqual(gatewayCalls, [
@@ -535,12 +539,7 @@ test("falls back to nativeHook.invoke when the reusable daemon is unavailable", 
   }
 
   assert.equal(exitCode, 6);
-  assert.deepEqual(consoleErrors, [
-    "[polytropos-cli] hooks relay validating options",
-    "[polytropos-cli] hooks relay invoking plugin gateway",
-    "[polytropos-cli] hooks relay falling back to nativeHook.invoke",
-    "[polytropos-cli] hooks relay nativeHook.invoke succeeded",
-  ]);
+  assert.deepEqual(consoleErrors, []);
   assert.equal(stdoutText, "fallback-out");
   assert.deepEqual(gatewayCalls, ["polytropos.hooksRelay.invoke", "nativeHook.invoke"]);
 });
@@ -589,12 +588,7 @@ test("logs when fallback nativeHook.invoke is unavailable", async () => {
   }
 
   assert.equal(exitCode, 0);
-  assert.deepEqual(consoleErrors, [
-    "[polytropos-cli] hooks relay validating options",
-    "[polytropos-cli] hooks relay invoking plugin gateway",
-    "[polytropos-cli] hooks relay falling back to nativeHook.invoke",
-    "[polytropos-cli] hooks relay nativeHook.invoke unavailable",
-  ]);
+  assert.deepEqual(consoleErrors, []);
   assert.match(stderrText, /native hook relay unavailable: gateway unavailable/);
   assert.match(stdoutText, /"permissionDecision":"deny"/);
 });
