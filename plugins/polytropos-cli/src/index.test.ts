@@ -344,6 +344,7 @@ test("registers the daemon service and gateway method in full mode", async () =>
         respond: (ok: boolean, payload?: unknown) => void;
       }) => Promise<void>)
     | undefined;
+  let gatewayMethodName: string | undefined;
   let respondedOk: boolean | undefined;
   let respondedPayload: unknown;
 
@@ -363,17 +364,19 @@ test("registers the daemon service and gateway method in full mode", async () =>
       service = nextService as typeof service;
     },
     registerGatewayMethod: (
-      _name: string,
+      name: string,
       handler: (ctx: {
         params?: Record<string, unknown>;
         respond: (ok: boolean, payload?: unknown) => void;
       }) => Promise<void>,
     ) => {
+      gatewayMethodName = name;
       gatewayMethod = handler as typeof gatewayMethod;
     },
   } as never);
 
   assert.ok(service);
+  assert.equal(gatewayMethodName, "polytropos.hooksRelay.invoke");
   assert.ok(gatewayMethod);
   await service.start();
   await gatewayMethod({
