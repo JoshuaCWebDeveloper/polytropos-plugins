@@ -7,6 +7,25 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const pluginRoot = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(pluginRoot, "../..");
 
+test("source manifest activates the gateway plugin on startup", async () => {
+  const sourceManifest = JSON.parse(
+    await fs.readFile(path.join(pluginRoot, "openclaw.plugin.json"), "utf8"),
+  );
+
+  assert.equal(sourceManifest.activation?.onStartup, true);
+});
+
+test("packaged manifest activates the gateway plugin on startup", async () => {
+  const packagedManifest = JSON.parse(
+    await fs.readFile(
+      path.join(repoRoot, "dist/plugins/polytropos-cli/dist/openclaw.plugin.json"),
+      "utf8",
+    ),
+  );
+
+  assert.equal(packagedManifest.activation?.onStartup, true);
+});
+
 test("plugin build emits lightweight CLI metadata for wrapper claim discovery", async () => {
   const packagedMetadataPath = path.join(
     repoRoot,
